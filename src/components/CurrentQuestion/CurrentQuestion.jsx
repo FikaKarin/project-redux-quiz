@@ -11,26 +11,114 @@ export const CurrentQuestion = () => {
   const [selectedIncorrectly, setSelectedIncorrectly] = useState(false);
   const [showCorrectAnswerEffect, setShowCorrectAnswerEffect] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [timer, setTimer] = useState(3); // Countdown timer for each question
+  const [totalTime, setTotalTime] = useState(0);
+  const [quizStartTime, setQuizStartTime] = useState(null);
 
-useEffect(() => {
-  const calculatedProgress = (currentQuestionIndex / questions.length) * 100;
-  setProgress(calculatedProgress);
+  useEffect(() => {
+    const calculatedProgress = (currentQuestionIndex / questions.length) * 100;
+    setProgress(calculatedProgress);
 
-  // Check if the questions container is available
-  const questionsContainer = document.querySelector('.questions-container');
-  if (questionsContainer) {
-    // Reset the fadeInDown animation and selectedIncorrectly state on each question change
-    questionsContainer.classList.remove('fadeInDown');
-    void questionsContainer.offsetWidth; // Trigger reflow
-    questionsContainer.classList.add('fadeInDown');
-  }
+    const questionsContainer = document.querySelector('.questions-container');
+    if (questionsContainer) {
+      questionsContainer.classList.remove('fadeInDown');
+      void questionsContainer.offsetWidth;
+      questionsContainer.classList.add('fadeInDown');
+    }
 
-  setSelectedIncorrectly(false);
+    setSelectedIncorrectly(false);
+    setShowCorrectAnswerEffect(false);
 
-  // Reset the correct answer effect state
-  setShowCorrectAnswerEffect(false);
-}, [currentQuestionIndex]);
+    setTimer(3);
+  }, [currentQuestionIndex]);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    if (!quizStartTime && currentQuestionIndex === 0) {
+      setQuizStartTime(Date.now());
+    }
+  }, [currentQuestionIndex, quizStartTime]);
+
+  useEffect(() => {
+    if (quizOver && quizStartTime) {
+      const endTime = Date.now();
+      const elapsedSeconds = Math.floor((endTime - quizStartTime) / 1000);
+      setTotalTime(elapsedSeconds);
+    }
+  }, [quizOver, quizStartTime]);
+
+  const handleAnswerSubmit = (answerIndex) => {
+    const isCorrect =
+      questions[currentQuestionIndex].correctAnswerIndex === answerIndex;
+  
+    console.log('Is Correct:', isCorrect);
+  
+    if (isCorrect) {
+      setShowCorrectAnswerEffect(true);
+      console.log('Correct styling applied');
+  
+      setTimeout(() => {
+        console.log('Correct styling removed');
+        setShowCorrectAnswerEffect(false);
+  
+        dispatch(
+          quiz.actions.submitAnswer({
+            questionId: questions[currentQuestionIndex].id,
+            answerIndex,
+            isCorrect,
+          })
+        );
+  
+        dispatch(quiz.actions.goToNextQuestion());
+  
+        if (currentQuestionIndex + 1 === questions.length) {
+          dispatch(quiz.actions.quizOver());
+        }
+  
+        if (isCorrect) {
+          dispatch(quiz.actions.incrementScore());
+        } else {
+          dispatch(quiz.actions.decrementScore());
+        }
+      }, 1500); // Adjust the delay as needed
+    } else {
+      setSelectedIncorrectly(true);
+  
+      console.log('Before setTimeout');
+      setTimeout(() => {
+        console.log('Inside setTimeout');
+        console.log('Correct styling removed');
+        setShowCorrectAnswerEffect(false);
+  
+        dispatch(
+          quiz.actions.submitAnswer({
+            questionId: questions[currentQuestionIndex].id,
+            answerIndex,
+            isCorrect,
+          })
+        );
+  
+        dispatch(quiz.actions.goToNextQuestion());
+  
+        if (currentQuestionIndex + 1 === questions.length) {
+          dispatch(quiz.actions.quizOver());
+        }
+  
+        dispatch(quiz.actions.decrementScore());
+      }, 1500); // Adjust the delay as needed
+      console.log('After setTimeout');
+    }
+  };
+  
+
+  const question = questions[currentQuestionIndex];
 
   if (quizOver) {
     const correctAnswers = answers.filter((answer) => answer.isCorrect);
@@ -42,11 +130,20 @@ useEffect(() => {
         <h1>Quiz Summary</h1>
         <p>Correct Answers: {correctAnswers.length}</p>
         <p>Incorrect Answers: {incorrectAnswers.length}</p>
+        <p>Your Score: {score}</p>
         {score < 4 ? (
           <p>Your score is below 4, you lost!</p>
         ) : (
           <p>Congratulations, you won!</p>
         )}
+        <div>
+          <h2>Questions to Practice:</h2>
+          <ul>
+            {incorrectAnswers.map((answer) => (
+              <li key={answer.question.id}>{answer.question.questionText}</li>
+            ))}
+          </ul>
+        </div>
         <button onClick={() => dispatch(quiz.actions.restart())}>
           Restart Quiz
         </button>
@@ -54,39 +151,11 @@ useEffect(() => {
     );
   }
 
-  const question = questions[currentQuestionIndex];
-
   if (!question) {
     return <h1>Oh no! I could not find the current question!</h1>;
   }
 
-  const handleAnswerSubmit = (answerIndex) => {
-    const isCorrect = question.correctAnswerIndex === answerIndex;
-    setSelectedIncorrectly(!isCorrect); // Update state based on correctness
-  
-    if (isCorrect) {
-      // Show correct answer effect for a brief moment
-      setShowCorrectAnswerEffect(true);
-      setTimeout(() => setShowCorrectAnswerEffect(false), 500); // Adjust duration as needed
-    }
-  
-    dispatch(
-      quiz.actions.submitAnswer({
-        questionId: question.id,
-        answerIndex,
-        isCorrect,
-      })
-    );
-  
-    dispatch(quiz.actions.goToNextQuestion());
-  
-    // Check if it's the last question to end the quiz
-    if (currentQuestionIndex + 1 === questions.length) {
-      dispatch(quiz.actions.quizOver()); // Dispatch the action to end the quiz
-    }
-  };    
-
-  console.log(score);
+  const { questionText, options, imageURL } = question;
 
   return (
     <div
@@ -100,13 +169,14 @@ useEffect(() => {
       </div>
       <h1>
         <p>Score: {score}</p>
+        <p>Time Left: {timer} seconds</p>
         Question {currentQuestionIndex + 1} / {questions.length}
       </h1>
       <div className='content-container'>
         <div className='buttons-container'>
-          <h2>{question.questionText}</h2>
+          <h2>{questionText}</h2>
           <ul>
-            {question.options.map((option, index) => (
+            {options.map((option, index) => (
               <li key={index}>
                 <button
                   className={`${
@@ -123,10 +193,7 @@ useEffect(() => {
           </ul>
         </div>
         <div className='image-container'>
-          <img
-            src={question.imageURL}
-            alt={`Question ${currentQuestionIndex + 1}`}
-          />
+          <img src={imageURL} alt={`Question ${currentQuestionIndex + 1}`} />
         </div>
       </div>
     </div>

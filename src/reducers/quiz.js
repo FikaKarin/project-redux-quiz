@@ -25,14 +25,16 @@ const questions = [
     questionText: 'What is the name of the fairy in Peter Pan?',
     options: ['Tinker Bell', 'Silvermist', 'Periwinkle', 'Fawn'],
     correctAnswerIndex: 0,
-    imageURL: 'https://pngimg.com/uploads/peter_pan/peter_pan_PNG2.png',
+    imageURL:
+      'https://pngimg.com/uploads/peter_pan/peter_pan_PNG2.png',
   },
   {
     id: 3,
     questionText: "Who is the villain in 'The Little Mermaid'?",
     options: ['Ursula', 'Maleficent', 'Cruella de Vil', 'Gaston'],
     correctAnswerIndex: 0,
-    imageURL: 'https://pngimg.com/uploads/ariel/ariel_PNG7.png',
+    imageURL:
+      'https://pngimg.com/uploads/ariel/ariel_PNG7.png',
   },
   {
     id: 4,
@@ -89,23 +91,6 @@ export const quiz = createSlice({
   name: 'quiz',
   initialState,
   reducers: {
-    // ... (your existing reducers)
-
-    /**
-     * Use this action when a user selects an answer to the question.
-     * The answer will be stored in the `quiz.answers` state with the
-     * following values:
-     *
-     *    questionId  - The id of the question being answered.
-     *    answerIndex - The index of the selected answer from the question's options.
-     *    question    - A copy of the entire question object, to make it easier to show
-     *                  details about the question in your UI.
-     *    answer      - The answer string.
-     *    isCorrect   - true/false if the answer was the one which the question says is correct.
-     *
-     * When dispatching this action, you should pass an object as the payload with `questionId`
-     * and `answerIndex` keys. See the readme for more details.
-     */
     submitAnswer: (state, action) => {
       const { questionId, answerIndex, isCorrect } = action.payload;
       const question = state.questions.find((q) => q.id === questionId);
@@ -130,65 +115,62 @@ export const quiz = createSlice({
         isCorrect,
       });
 
-      // Update the score based on correctness
       if (isCorrect) {
-        state.score += 1; // Add a point for correct answers
+        state.score += 1;
       } else {
-        // Deduct points for incorrect answers (you can adjust the value)
-        state.score -= 1;
+        if (state.score > 0) {
+          state.score -= 1;
+        }
       }
     },
-
-    /**
-     * Use this action to progress the quiz to the next question. If there's
-     * no more questions (the user was on the final question), set `quizOver`
-     * to `true`.
-     *
-     * This action does not require a payload.
-     */
     goToNextQuestion: (state) => {
       if (state.score < 0) {
-        // If the user's score is negative, reset it to 0
         state.score = 0;
       }
-
-      // Calculate the threshold for the minimum score required to continue
-      const threshold = Math.ceil(state.questions.length / 2);
-
-      const remainingQuestions =
-        state.questions.length - (state.currentQuestionIndex + 1);
-      if (state.score + remainingQuestions >= threshold) {
-        // If it's possible, go to the next question
-        state.currentQuestionIndex += 1;
-      } else if (state.currentQuestionIndex + 1 === state.questions.length) {
-        // If it's the last question, end the quiz
-        state.quizOver = true;
-      } else {
-        // If it's not the last question and the score is below the threshold, end the quiz
+    
+      state.currentQuestionIndex += 1;
+    
+      if (state.currentQuestionIndex === state.questions.length) {
         state.quizOver = true;
       }
     },
+       
 
-    /**
-     * Use this action to reset the state to the initial state the page had
-     * when it was loaded. Who doesn't like re-doing a quiz when you know the
-     * answers?!
-     *
-     * This action does not require a payload.
-     */
     restart: () => {
       return initialState;
     },
 
-    /**
-     * Use this action to set the quiz as over. This action should be
-     * dispatched when the user's score is below a certain threshold.
-     *
-     * This action does not require a payload.
-     */
     quizOver: (state) => {
       state.quizOver = true;
-      state.currentQuestionIndex = state.questions.length; // Set the index to a value that's out of bounds
+      state.currentQuestionIndex = state.questions.length;
     },
+
+    incrementScore: (state) => {
+      const currentQuestion =
+        state.currentQuestionIndex < state.questions.length
+          ? state.questions[state.currentQuestionIndex]
+          : null;
+    
+      const currentAnswer = currentQuestion
+        ? state.answers.find((answer) => answer.questionId === currentQuestion.id)
+        : null;
+    
+      if (currentQuestion && currentAnswer && currentAnswer.answerIndex === currentQuestion.correctAnswerIndex) {
+        state.score += 1;
+      }
+    },
+    
+    
+    decrementScore: (state) => {
+      const currentQuestion = state.questions[state.currentQuestionIndex];
+      const currentAnswer = state.answers.find(
+        (answer) => answer.questionId === currentQuestion.id
+      );
+    
+      if (currentQuestion && currentAnswer && state.score > 0 && currentAnswer.answerIndex === currentQuestion.correctAnswerIndex) {
+        state.score -= 1;
+      }
+    },    
+    
   },
 });
