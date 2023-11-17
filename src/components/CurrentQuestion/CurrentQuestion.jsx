@@ -11,8 +11,9 @@ export const CurrentQuestion = () => {
   const [selectedIncorrectly, setSelectedIncorrectly] = useState(false);
   const [showCorrectAnswerEffect, setShowCorrectAnswerEffect] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [timer, setTimer] = useState(3); // Countdown timer for each question
+  const [timer, setTimer] = useState(6); // Countdown timer for each question
   const [quizStartTime, setQuizStartTime] = useState(null);
+  const [totalElapsedTime, setTotalElapsedTime] = useState(0);
 
   useEffect(() => {
     const calculatedProgress = (currentQuestionIndex / questions.length) * 100;
@@ -50,6 +51,9 @@ export const CurrentQuestion = () => {
     if (timer === 0 && !quizOver) {
       // Timer runs out, move to the next question
       dispatch(quiz.actions.goToNextQuestion());
+
+      // Add the time spent on the current question to totalElapsedTime
+      setTotalElapsedTime((prevElapsedTime) => prevElapsedTime + (6 - timer));
 
       // Reset timer for the next question
       setTimer(6);
@@ -131,6 +135,7 @@ export const CurrentQuestion = () => {
         <p>Incorrect Answers: {incorrectAnswers.length}</p>
         <p>Unanswered Questions: {unansweredQuestions.length}</p>
         <p>Your Score: {score}</p>
+        <p>Total Elapsed Time: {totalElapsedTime} seconds</p>
         {score < 4 ? (
           <p>Your score is below 4, you lost!</p>
         ) : (
@@ -209,4 +214,3 @@ export const CurrentQuestion = () => {
     </div>
   );
 };
-
