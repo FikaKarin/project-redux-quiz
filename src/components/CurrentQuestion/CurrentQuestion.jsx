@@ -12,7 +12,6 @@ export const CurrentQuestion = () => {
   const [showCorrectAnswerEffect, setShowCorrectAnswerEffect] = useState(false);
   const [progress, setProgress] = useState(0);
   const [timer, setTimer] = useState(3); // Countdown timer for each question
-  const [totalTime, setTotalTime] = useState(0);
   const [quizStartTime, setQuizStartTime] = useState(null);
 
   useEffect(() => {
@@ -45,14 +44,6 @@ export const CurrentQuestion = () => {
       setQuizStartTime(Date.now());
     }
   }, [currentQuestionIndex, quizStartTime]);
-
-  useEffect(() => {
-    if (quizOver && quizStartTime) {
-      const endTime = Date.now();
-      const elapsedSeconds = Math.floor((endTime - quizStartTime) / 1000);
-      setTotalTime(elapsedSeconds);
-    }
-  }, [quizOver, quizStartTime]);
 
   const handleAnswerSubmit = (answerIndex) => {
     const isCorrect =
