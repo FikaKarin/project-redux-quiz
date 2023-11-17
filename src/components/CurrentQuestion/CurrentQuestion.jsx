@@ -28,8 +28,8 @@ export const CurrentQuestion = () => {
     setSelectedIncorrectly(false);
     setShowCorrectAnswerEffect(false);
 
-    setTimer(3);
-  }, [currentQuestionIndex]);
+    setTimer(6);
+  }, [currentQuestionIndex, questions]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -45,20 +45,33 @@ export const CurrentQuestion = () => {
     }
   }, [currentQuestionIndex, quizStartTime]);
 
+  // New useEffect to handle timer running out
+  useEffect(() => {
+    if (timer === 0 && !quizOver) {
+      // Timer runs out, move to the next question
+      dispatch(quiz.actions.goToNextQuestion());
+
+      // Reset timer for the next question
+      setTimer(6);
+    }
+  }, [timer, quizOver, dispatch]);
+
+  const unansweredQuestions = questions
+    .filter((_, index) => !answers.some((answer) => answer.question.id === index));
+
   const handleAnswerSubmit = (answerIndex) => {
-    const isCorrect =
-      questions[currentQuestionIndex].correctAnswerIndex === answerIndex;
-  
+    const isCorrect = questions[currentQuestionIndex].correctAnswerIndex === answerIndex;
+
     console.log('Is Correct:', isCorrect);
-  
+
     if (isCorrect) {
       setShowCorrectAnswerEffect(true);
       console.log('Correct styling applied');
-  
+
       setTimeout(() => {
         console.log('Correct styling removed');
         setShowCorrectAnswerEffect(false);
-  
+
         dispatch(
           quiz.actions.submitAnswer({
             questionId: questions[currentQuestionIndex].id,
@@ -66,28 +79,24 @@ export const CurrentQuestion = () => {
             isCorrect,
           })
         );
-  
-        dispatch(quiz.actions.goToNextQuestion());
-  
+
+        dispatch(quiz.actions.incrementScore());
+
         if (currentQuestionIndex + 1 === questions.length) {
           dispatch(quiz.actions.quizOver());
-        }
-  
-        if (isCorrect) {
-          dispatch(quiz.actions.incrementScore());
         } else {
-          dispatch(quiz.actions.decrementScore());
+          dispatch(quiz.actions.goToNextQuestion());
         }
       }, 1500); // Adjust the delay as needed
     } else {
       setSelectedIncorrectly(true);
-  
+
       console.log('Before setTimeout');
       setTimeout(() => {
         console.log('Inside setTimeout');
         console.log('Correct styling removed');
         setShowCorrectAnswerEffect(false);
-  
+
         dispatch(
           quiz.actions.submitAnswer({
             questionId: questions[currentQuestionIndex].id,
@@ -95,19 +104,18 @@ export const CurrentQuestion = () => {
             isCorrect,
           })
         );
-  
-        dispatch(quiz.actions.goToNextQuestion());
-  
+
+        dispatch(quiz.actions.decrementScore());
+
         if (currentQuestionIndex + 1 === questions.length) {
           dispatch(quiz.actions.quizOver());
+        } else {
+          dispatch(quiz.actions.goToNextQuestion());
         }
-  
-        dispatch(quiz.actions.decrementScore());
       }, 1500); // Adjust the delay as needed
       console.log('After setTimeout');
     }
   };
-  
 
   const question = questions[currentQuestionIndex];
 
@@ -121,6 +129,7 @@ export const CurrentQuestion = () => {
         <h1>Quiz Summary</h1>
         <p>Correct Answers: {correctAnswers.length}</p>
         <p>Incorrect Answers: {incorrectAnswers.length}</p>
+        <p>Unanswered Questions: {unansweredQuestions.length}</p>
         <p>Your Score: {score}</p>
         {score < 4 ? (
           <p>Your score is below 4, you lost!</p>
@@ -135,6 +144,16 @@ export const CurrentQuestion = () => {
             ))}
           </ul>
         </div>
+        {unansweredQuestions.length > 0 && (
+          <div>
+            <h2>Unanswered Questions:</h2>
+            <ul>
+              {unansweredQuestions.map((question, index) => (
+                <li key={index}>{question.questionText}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <button onClick={() => dispatch(quiz.actions.restart())}>
           Restart Quiz
         </button>
@@ -190,3 +209,4 @@ export const CurrentQuestion = () => {
     </div>
   );
 };
+
