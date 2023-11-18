@@ -60,65 +60,39 @@ export const CurrentQuestion = () => {
     }
   }, [timer, quizOver, dispatch]);
 
-  const unansweredQuestions = questions
-    .filter((_, index) => !answers.some((answer) => answer.question.id === index));
+  const unansweredQuestions = questions.filter(
+    (question) => !answers.some((answer) => answer.questionId === question.id)
+  );
 
   const handleAnswerSubmit = (answerIndex) => {
-    const isCorrect = questions[currentQuestionIndex].correctAnswerIndex === answerIndex;
+    const isCorrect =
+      questions[currentQuestionIndex].correctAnswerIndex === answerIndex;
 
-    console.log('Is Correct:', isCorrect);
+    setShowCorrectAnswerEffect(isCorrect);
 
-    if (isCorrect) {
-      setShowCorrectAnswerEffect(true);
-      console.log('Correct styling applied');
-
-      setTimeout(() => {
-        console.log('Correct styling removed');
-        setShowCorrectAnswerEffect(false);
-
-        dispatch(
-          quiz.actions.submitAnswer({
-            questionId: questions[currentQuestionIndex].id,
-            answerIndex,
-            isCorrect,
-          })
-        );
-
-        dispatch(quiz.actions.incrementScore());
-
-        if (currentQuestionIndex + 1 === questions.length) {
-          dispatch(quiz.actions.quizOver());
-        } else {
-          dispatch(quiz.actions.goToNextQuestion());
-        }
-      }, 1500); // Adjust the delay as needed
-    } else {
+    if (!isCorrect) {
       setSelectedIncorrectly(true);
-
-      console.log('Before setTimeout');
-      setTimeout(() => {
-        console.log('Inside setTimeout');
-        console.log('Correct styling removed');
-        setShowCorrectAnswerEffect(false);
-
-        dispatch(
-          quiz.actions.submitAnswer({
-            questionId: questions[currentQuestionIndex].id,
-            answerIndex,
-            isCorrect,
-          })
-        );
-
-        dispatch(quiz.actions.decrementScore());
-
-        if (currentQuestionIndex + 1 === questions.length) {
-          dispatch(quiz.actions.quizOver());
-        } else {
-          dispatch(quiz.actions.goToNextQuestion());
-        }
-      }, 1500); // Adjust the delay as needed
-      console.log('After setTimeout');
     }
+
+    setTimeout(() => {
+      setShowCorrectAnswerEffect(false);
+      setSelectedIncorrectly(false);
+
+      dispatch(
+        quiz.actions.submitAnswer({
+          questionId: questions[currentQuestionIndex].id,
+          answerIndex,
+          isCorrect,
+          timer: 6 - timer, // Save the time spent on this question
+        })
+      );
+
+      if (currentQuestionIndex + 1 === questions.length) {
+        dispatch(quiz.actions.quizOver());
+      } else {
+        dispatch(quiz.actions.goToNextQuestion());
+      }
+    }, 1500); // Adjust the delay as needed
   };
 
   const question = questions[currentQuestionIndex];
@@ -126,6 +100,12 @@ export const CurrentQuestion = () => {
   if (quizOver) {
     const correctAnswers = answers.filter((answer) => answer.isCorrect);
     const incorrectAnswers = answers.filter((answer) => !answer.isCorrect);
+
+    // Calculate the total elapsed time
+    const totalElapsedTimeOnQuestions = answers.reduce(
+      (total, answer) => total + (answer ? answer.timer : 6), // If no answer is given, consider 6 seconds for that question
+      0
+    );
 
     // Use the score from the state
     return (
@@ -135,7 +115,7 @@ export const CurrentQuestion = () => {
         <p>Incorrect Answers: {incorrectAnswers.length}</p>
         <p>Unanswered Questions: {unansweredQuestions.length}</p>
         <p>Your Score: {score}</p>
-        <p>Total Elapsed Time: {totalElapsedTime} seconds</p>
+        <p>Total Elapsed Time: {totalElapsedTimeOnQuestions} seconds</p>
         {score < 4 ? (
           <p>Your score is below 4, you lost!</p>
         ) : (
@@ -195,7 +175,8 @@ export const CurrentQuestion = () => {
               <li key={index}>
                 <button
                   className={`${
-                    selectedIncorrectly && index === question.correctAnswerIndex
+                    selectedIncorrectly &&
+                    index === questions[currentQuestionIndex].correctAnswerIndex
                       ? 'correct-answer'
                       : ''
                   }`}

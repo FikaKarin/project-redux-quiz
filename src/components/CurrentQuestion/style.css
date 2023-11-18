@@ -14,22 +14,23 @@ body::before {
 
 body {
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(45deg, #ffcc00, #66ccff); /* Disney colors */
+  background: linear-gradient(45deg, #ffcc00, #66ccff);
   margin: 0;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  overflow: hidden; /* Hide overflow for background particles */
+  overflow-y: auto; /* Enable vertical scrolling for the body */
 }
 
 /* Questions container styles */
 .questions-container {
   position: relative;
   background-size: cover;
-  animation: fadeInDown 0.3s ease; /* Fade-in animation for questions */
-  overflow: hidden;
+  animation: fadeInDown 0.3s ease;
+  overflow-y: auto; /* Enable vertical scrolling when content overflows */
+  max-height: 100vh; /* Set a maximum height for the container */
 }
 
 .questions-container::before {
@@ -45,18 +46,32 @@ body {
   z-index: -1;
 }
 
-/* Summary container styles */
 .summary-container {
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  width: 80%;
+  margin: 0 auto;
+  margin-top: 86px;
+}
+/* Summary container styles */
+.summary-container h1 {
   display: flex;
   flex-direction: column;
   animation: fadeInUp 0.5s ease; /* Fade-in animation for summary */
-  background-size: cover;
 }
 
 .summary-container p {
   color: white;
-  font-weight: 600;
+  font-weight: 200;
   text-align: center;
+}
+
+.summary-container li {
+  display: flex;
+  flex-direction: column;
+  animation: fadeInUp 0.5s ease; /* Fade-in animation for summary */
+  font-weight: 200;
 }
 
 .summary-container::before {

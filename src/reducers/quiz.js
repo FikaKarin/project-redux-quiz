@@ -155,22 +155,22 @@ export const quiz = createSlice({
         ? state.answers.find((answer) => answer.questionId === currentQuestion.id)
         : null;
     
-      if (currentQuestion && currentAnswer && currentAnswer.answerIndex === currentQuestion.correctAnswerIndex) {
+      if (currentQuestion && currentAnswer && currentAnswer.isCorrect) {
         state.score += 1;
       }
     },
     
-    
+    // decrementScore reducer
     decrementScore: (state) => {
       const currentQuestion = state.questions[state.currentQuestionIndex];
       const currentAnswer = state.answers.find(
         (answer) => answer.questionId === currentQuestion.id
       );
     
-      if (currentQuestion && currentAnswer && state.score > 0 && currentAnswer.answerIndex === currentQuestion.correctAnswerIndex) {
+      if (currentQuestion && currentAnswer && !currentAnswer.isCorrect) {
         state.score -= 1;
       }
-    },    
+    },  
     
   },
 });
