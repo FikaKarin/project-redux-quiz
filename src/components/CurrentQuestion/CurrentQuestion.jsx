@@ -11,7 +11,7 @@ export const CurrentQuestion = () => {
   const [selectedIncorrectly, setSelectedIncorrectly] = useState(false);
   const [showCorrectAnswerEffect, setShowCorrectAnswerEffect] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [timer, setTimer] = useState(6); // Countdown timer for each question
+  const [timer, setTimer] = useState(15); // Countdown timer for each question
   const [quizStartTime, setQuizStartTime] = useState(null);
   const [totalElapsedTime, setTotalElapsedTime] = useState(0);
 
@@ -29,7 +29,7 @@ export const CurrentQuestion = () => {
     setSelectedIncorrectly(false);
     setShowCorrectAnswerEffect(false);
 
-    setTimer(6);
+    setTimer(15);
   }, [currentQuestionIndex, questions]);
 
   useEffect(() => {
@@ -53,10 +53,10 @@ export const CurrentQuestion = () => {
       dispatch(quiz.actions.goToNextQuestion());
 
       // Add the time spent on the current question to totalElapsedTime
-      setTotalElapsedTime((prevElapsedTime) => prevElapsedTime + (6 - timer));
+      setTotalElapsedTime((prevElapsedTime) => prevElapsedTime + (15 - timer));
 
       // Reset timer for the next question
-      setTimer(6);
+      setTimer(15);
     }
   }, [timer, quizOver, dispatch]);
 
@@ -83,7 +83,7 @@ export const CurrentQuestion = () => {
           questionId: questions[currentQuestionIndex].id,
           answerIndex,
           isCorrect,
-          timer: 6 - timer, // Save the time spent on this question
+          timer: 15 - timer, // Save the time spent on this question
         })
       );
 
@@ -103,7 +103,7 @@ export const CurrentQuestion = () => {
 
     // Calculate the total elapsed time
     const totalElapsedTimeOnQuestions = answers.reduce(
-      (total, answer) => total + (answer ? answer.timer : 6), // If no answer is given, consider 6 seconds for that question
+      (total, answer) => total + (answer ? answer.timer : 15), // If no answer is given, consider 15 seconds for that question
       0
     );
 
