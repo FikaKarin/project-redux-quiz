@@ -13,7 +13,6 @@ export const CurrentQuestion = () => {
   const [progress, setProgress] = useState(0);
   const [timer, setTimer] = useState(15); // Countdown timer for each question
   const [quizStartTime, setQuizStartTime] = useState(null);
-  const [totalElapsedTime, setTotalElapsedTime] = useState(0);
 
   useEffect(() => {
     const calculatedProgress = (currentQuestionIndex / questions.length) * 100;
@@ -51,9 +50,6 @@ export const CurrentQuestion = () => {
     if (timer === 0 && !quizOver) {
       // Timer runs out, move to the next question
       dispatch(quiz.actions.goToNextQuestion());
-
-      // Add the time spent on the current question to totalElapsedTime
-      setTotalElapsedTime((prevElapsedTime) => prevElapsedTime + (15 - timer));
 
       // Reset timer for the next question
       setTimer(15);
@@ -101,12 +97,6 @@ export const CurrentQuestion = () => {
     const correctAnswers = answers.filter((answer) => answer.isCorrect);
     const incorrectAnswers = answers.filter((answer) => !answer.isCorrect);
 
-    // Calculate the total elapsed time
-    const totalElapsedTimeOnQuestions = answers.reduce(
-      (total, answer) => total + (answer ? answer.timer : 15), // If no answer is given, consider 15 seconds for that question
-      0
-    );
-
     // Use the score from the state
     return (
       <div className='summary-container'>
@@ -115,13 +105,12 @@ export const CurrentQuestion = () => {
         <p>Incorrect Answers: {incorrectAnswers.length}</p>
         <p>Unanswered Questions: {unansweredQuestions.length}</p>
         <p>Your Score: {score}</p>
-        <p>Total Elapsed Time: {totalElapsedTimeOnQuestions} seconds</p>
         {score < 4 ? (
           <p>Your score is below 4, you lost!</p>
         ) : (
           <p>Congratulations, you won!</p>
         )}
-        <div>
+        <div className='practice-container'>
           <h2>Questions to Practice:</h2>
           <ul>
             {incorrectAnswers.map((answer) => (
@@ -162,7 +151,7 @@ export const CurrentQuestion = () => {
       <div className='progress-container'>
         <div className='progress-bar' style={{ width: `${progress}%` }}></div>
       </div>
-      <h1>
+      <h1 className='questionNr'>
         <p>Score: {score}</p>
         <p>Time Left: {timer} seconds</p>
         Question {currentQuestionIndex + 1} / {questions.length}

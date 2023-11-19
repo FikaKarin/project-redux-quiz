@@ -33,6 +33,10 @@ body {
   max-height: 100vh; /* Set a maximum height for the container */
 }
 
+.questions-container .questionNr {
+  font-size: 16px;
+}
+
 .questions-container::before {
   content: '';
   position: absolute;
@@ -55,11 +59,13 @@ body {
   margin-top: 86px;
 }
 /* Summary container styles */
-.summary-container h1 {
+.summary-container h1, .practice-container h2 {
   display: flex;
   flex-direction: column;
   animation: fadeInUp 0.5s ease; /* Fade-in animation for summary */
+  color: rgb(164, 164, 253);
 }
+
 
 .summary-container p {
   color: white;
